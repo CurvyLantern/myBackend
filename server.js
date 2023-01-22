@@ -19,6 +19,7 @@ const io = new Server(server, {
 });
 
 io.on('connection', socket => {
+	console.log('connected');
 	socket.emit('me', socket.id);
 
 	socket.on('disconnect', () => {
@@ -26,6 +27,8 @@ io.on('connection', socket => {
 	});
 
 	socket.on('signal', ({ signal }) => {
+	console.log('sending signal');
+		
 		socket.broadcast.emit('receive', { signal });
 	});
 
