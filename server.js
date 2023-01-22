@@ -23,11 +23,11 @@ io.on('connection', socket => {
 	socket.emit('me', socket.id);
 
 	socket.on('disconnect', () => {
-		socket.broadcast.emit('callended');
+		socket.broadcast.emit('share-end');
 	});
-	
+
 	socket.on('test', txt => {
-		socket.broadcast.emit('test2', txt);
+		io.emit('test2', txt);
 	});
 
 	socket.on('signal', ({ signal }) => {
