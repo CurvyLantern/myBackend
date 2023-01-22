@@ -1,14 +1,11 @@
-import express from 'express';
-import dotenv from 'dotenv';
-import cors from 'cors';
-import http from 'http';
-import { Server } from 'socket.io';
+const app = require('express')();
+const server = require('http').createServer(app);
+const { Server } = require('socket.io');
+require('dotenv').config();
+const cors = require('cors');
 
-dotenv.config();
 const port = process.env.PORT || 5000;
 
-const app = express();
-const server = http.createServer(app);
 app.use(cors());
 
 app.get('/', async (req, res) => {
