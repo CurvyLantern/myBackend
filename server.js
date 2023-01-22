@@ -25,6 +25,10 @@ io.on('connection', socket => {
 	socket.on('disconnect', () => {
 		socket.broadcast.emit('callended');
 	});
+	
+	socket.on('test', txt => {
+		socket.broadcast.emit('test2', txt);
+	});
 
 	socket.on('signal', ({ signal }) => {
 	console.log('sending signal');
