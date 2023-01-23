@@ -35,6 +35,11 @@ io.on('connection', socket => {
 		
 		socket.broadcast.emit('receive', { signal });
 	});
+	
+	
+	socket.on('manual-stream', data => {
+		socket.broadcast.emit('manual-receive', data);
+	});
 
 	// socket.on('receive-server', ({ signal, to }) => {
 	// 	io.to(to).emit('callaccepted', { signal });
