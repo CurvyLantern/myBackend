@@ -1,3 +1,10 @@
 {
-	"extends": "@tsconfig/recommended"
+	"compilerOptions": {
+		"target": "ES2018",
+		"forceConsistentCasingInFileNames": true,
+		"esModuleInterop": true,
+		"skipLibCheck": true,
+		"moduleResolution": "Node16"
+	}
+	// "extends": "@tsconfig/recommended"
 }

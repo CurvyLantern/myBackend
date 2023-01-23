@@ -26,7 +26,7 @@ const io = new Server(server, {
 		origin: '*',
 	},
 });
-let roomQueue = [];
+let roomQueue: string[] = [];
 (() => {
 	io.on('connection', socket => {
 		socket.on('leave-room', ({ roomId }) => {
@@ -92,7 +92,7 @@ let roomQueue = [];
 				if (socket.handshake.auth.isHosting === 'yes') {
 					const user = io.of('/').sockets.get(id);
 					const userObj = {
-						userId: user.handshake.auth.userId,
+						userId: user?.handshake.auth.userId,
 						socketId: id,
 						roomId: room,
 					};
