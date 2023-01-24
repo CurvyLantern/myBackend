@@ -29,8 +29,13 @@ const io = new Server(server, {
 let roomQueue: string[] = [];
 (() => {
 	io.on('connection', socket => {
-		socket.on('leave-room', ({ roomId }) => {
+		// socket.on('dis')
+		socket.on('leave-room', ({ roomId, userId }) => {
 			socket.leave(roomId);
+			socket.broadcast.to(roomId).emit('user-left', {
+				socketId: socket.id,
+				userId,
+			});
 		});
 		socket.on('host:leave-room', ({ roomId }) => {
 			socket.broadcast.to(roomId).emit('host-left');
