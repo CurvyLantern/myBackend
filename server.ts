@@ -4,7 +4,7 @@ import { Server } from 'socket.io';
 import { nanoid } from 'nanoid';
 import dotenv from 'dotenv';
 import cors from 'cors';
-
+import { instrument } from '@socket.io/admin-ui';
 dotenv.config();
 const app = express();
 const server = createServer(app);
@@ -26,87 +26,176 @@ const io = new Server(server, {
 		origin: '*',
 	},
 });
-let roomQueue: string[] = [];
+
+instrument(io, {
+	auth: false,
+	mode: 'development',
+});
+
 (() => {
 	io.on('connection', socket => {
-		// socket.on('dis')
-		socket.on('leave-room', ({ roomId, userId }) => {
-			socket.leave(roomId);
-			socket.broadcast.to(roomId).emit('user-left', {
-				socketId: socket.id,
-				userId,
+		// socket.on('routine-report', async ({ roomId }) => {
+		// 	console.log('received report');
+		// 	const sockMap = await io.in(roomId).fetchSockets();
+		// 	let allUserId = [];
+		// 	for (let sock of sockMap) {
+		// 		allUserId.push(sock.handshake.auth.userId);
+		// 	}
+		// 	console.log('clearing up event emitting');
+		// 	io.to(roomId).emit('receive-report', { allUserId });
+		// });
+
+		//complete don't touch
+		socket.on('join-room', roomId => {
+			console.log('user joined', roomId);
+			// join the room
+			socket.join(roomId);
+			socket.emit('joined-room', roomId);
+			// notify everyone else that you have joined
+			socket.broadcast.emit('friend-joined-room', {
+				whoJoinedId: socket.handshake.auth.userId,
+				whoJoinedSockId: socket.id,
 			});
 		});
-		socket.on('host:leave-room', ({ roomId }) => {
-			socket.broadcast.to(roomId).emit('host-left');
-			socket.leave(roomId);
-		});
 
-		socket.on('create-room', roomId => {
-			socket.join(roomId);
-			roomQueue.push(roomId);
-			console.log(roomQueue);
-		});
-
-		socket.on('user-join-room', roomId => {
-			socket.join(roomId);
-		});
-
-		socket.on('connect-to-user', async ({ userId, roomId, signal }) => {
-			const sockets = await io.in(roomId).fetchSockets();
-			for (let socket of sockets) {
-				if (socket.handshake.auth.userId === userId) {
-					io.to(socket.id).emit('host-signal', { signal });
-					break;
-				}
+		//complete don't touch
+		socket.on('create-receive-peer', ({ toWhomId, toWhomSockId, roomId }) => {
+			if (toWhomSockId) {
+				io.to(toWhomSockId).emit('create-receive-peer', {
+					fromWhomId: socket.handshake.auth.userId,
+					fromWhomSockId: socket.id,
+				});
+			} else {
+				(async () => {
+					const sockMap = await io.in(roomId).fetchSockets();
+					for (let sock of sockMap) {
+						if (sock.handshake.auth.userId === toWhomId) {
+							io.to(sock.id).emit('create-receive-peer', {
+								fromWhomId: socket.handshake.auth.userId,
+								fromWhomSockId: socket.id,
+							});
+							break;
+						}
+					}
+				})();
 			}
 		});
 
-		socket.on('connect-with-host', async ({ socketId, userId, roomId, signal }) => {
-			const findSockets = await io.in(roomId).fetchSockets();
-			for (let sock of findSockets) {
-				if (sock.handshake.auth.isHosting === 'yes') {
-					sock.emit('host:on-client-connect', {
-						signal,
-						userId,
-					});
+		//complete don't touch
+		socket.on('send-signal-to-friend', ({ toWhomId, toWhomSockId, signal, roomId }) => {
+			if (toWhomSockId) {
+				io.to(toWhomSockId).emit('receive-signal-from-friend', {
+					fromWhomId: socket.handshake.auth.userId,
+					signal,
+				});
+			} else {
+				(async () => {
+					const sockMap = await io.in(roomId).fetchSockets();
+					for (let sock of sockMap) {
+						if (sock.handshake.auth.userId === toWhomId) {
+							io.to(sock.id).emit('receive-signal-from-friend', {
+								fromWhomId: socket.handshake.auth.userId,
+								signal,
+							});
 
-					break;
-				}
+							break;
+						}
+					}
+				})();
 			}
 		});
+		// socket.on('connect-to-friend', ({ from, to, signal, roomId }) => {
+		// 	if (to) {
+		// 		io.to(to).emit('on-req-to-connect', {
+		// 			from: socket.handshake.auth.userId,
+		// 			signal,
+		// 		});
+		// 	} else {
+		// 		(async () => {
+		// 			const sockMap = await io.in(roomId).fetchSockets();
+		// 			for (let sock of sockMap) {
+		// 				if (sock.handshake.auth.userId === from) {
+		// 					io.to(sock.id).emit('on-req-to-connect', {
+		// 						from: socket.handshake.auth.userId,
+		// 						signal,
+		// 					});
+		// 				}
+		// 			}
+		// 		})();
+		// 	}
+		// });
 
-		socket.on('client:connect-from-host', async ({ userId, signal, roomId }) => {
-			console.log('received client:connect-from-host');
-			const sockets = await io.in(roomId).fetchSockets();
+		console.log('I am connected and working', socket.handshake.auth.userId);
 
-			for (let sock of sockets) {
-				if (sock.handshake.auth.userId === userId) {
-					io.to(sock.id).emit('signal-from-host', {
-						signal,
-					});
-					break;
-				}
-			}
+		socket.on('logging-out', ({ roomId }) => {
+			io.to(roomId).emit('friend-logged-out', { who: socket.handshake.auth.userId });
+			console.log('logging out ', socket.handshake.auth.userId);
 		});
-	});
-	io.of('/').adapter.on('join-room', async (room, id) => {
-		if (roomQueue.includes(room)) {
-			const findSockets = await io.in(room).fetchSockets();
-			for (let socket of findSockets) {
-				if (socket.handshake.auth.isHosting === 'yes') {
-					const user = io.of('/').sockets.get(id);
-					const userObj = {
-						userId: user?.handshake.auth.userId,
-						socketId: id,
-						roomId: room,
-					};
-					socket.emit('user-joined', userObj);
-					break;
-				}
-			}
-		}
+
+		socket.on('disconnecting', () => {
+			const id = socket.id;
+			const allRooms = socket.rooms;
+			const filteredRoom = new Set(allRooms);
+			filteredRoom.delete(id);
+			const roomArray = Array.from(filteredRoom);
+			roomArray.forEach(room => {
+				console.log(id, room, 'disconnecting', socket.handshake.auth.userId); // the Set contains at least the socket ID
+				io.to(room).emit('friend-logged-out', { who: socket.handshake.auth.userId });
+			});
+		});
+
+		// socket.on('complete-connection', ({ signal, toWhomId, toWhomSockId }) => {
+		// 	io.to(toWhomSockId).emit('on-final-signal', { from: socket.handshake.auth.userId, signal });
+		// });
+		// a socket joins do something
+		// socket wants to join a room
 	});
 })();
+
+
+
+
+// (() => {
+// 	io.on('connection', socket => {
+// 		// socket.on('routine-report', async ({ roomId }) => {
+// 		// 	console.log('received report');
+// 		// 	const sockMap = await io.in(roomId).fetchSockets();
+// 		// 	let allUserId = [];
+// 		// 	for (let sock of sockMap) {
+// 		// 		allUserId.push(sock.handshake.auth.userId);
+// 		// 	}
+// 		// 	console.log('clearing up event emitting');
+// 		// 	io.to(roomId).emit('receive-report', { allUserId });
+// 		// });
+// 		socket.on('logging-out', ({ roomId }) => {
+// 			io.to(roomId).emit('friend-logged-out', { who: socket.handshake.auth.userId });
+// 			console.log('logging out ', socket.handshake.auth.userId);
+// 		});
+// 		socket.on('connect-to-friend', ({ from, to, signal }) => {
+// 			io.to(to).emit('on-req-to-connect', {
+// 				from: socket.handshake.auth.userId,
+// 				signal,
+// 			});
+// 		});
+// 		socket.on('complete-connection', ({ signal, to }) => {
+// 			io.to(to).emit('on-final-signal', { from: socket.handshake.auth.userId, signal });
+// 		});
+
+// 		// a socket joins do something
+
+// 		// socket wants to join a room
+// 		socket.on('join-room', roomId => {
+// 			// join the room
+// 			socket.join(roomId);
+// 			socket.emit('joined-room', roomId);
+
+// 			// notify everyone else that you have joined
+// 			socket.broadcast.emit('friend-joined-room', {
+// 				from: socket.handshake.auth.userId,
+// 				sockId: socket.id,
+// 			});
+// 		});
+// 	});
+// })();
 
 server.listen(port, () => console.log(`server listening on ${port}`));

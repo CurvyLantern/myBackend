@@ -5,6 +5,7 @@
 		"esModuleInterop": true,
 		"skipLibCheck": true,
 		"moduleResolution": "Node16"
-	}
+	},
+	"ts-node": { "esm": true }
 	// "extends": "@tsconfig/recommended"
 }
