@@ -52,7 +52,7 @@ instrument(io, {
 			socket.join(roomId);
 			socket.emit('joined-room', roomId);
 			// notify everyone else that you have joined
-			socket.broadcast.emit('friend-joined-room', {
+			socket.to(roomId).emit('friend-joined-room', {
 				whoJoinedId: socket.handshake.auth.userId,
 				whoJoinedSockId: socket.id,
 			});
@@ -128,8 +128,13 @@ instrument(io, {
 		console.log('I am connected and working', socket.handshake.auth.userId);
 
 		socket.on('logging-out', ({ roomId }) => {
-			io.to(roomId).emit('friend-logged-out', { who: socket.handshake.auth.userId });
+			socket.to(roomId).emit('friend-logged-out', { who: socket.handshake.auth.userId });
 			console.log('logging out ', socket.handshake.auth.userId);
+		});
+
+		socket.on('send-message', ({ roomId, ...data }) => {
+			console.log(data, roomId);
+			io.to(roomId).emit('receive-message', data);
 		});
 
 		socket.on('disconnecting', () => {
@@ -140,7 +145,7 @@ instrument(io, {
 			const roomArray = Array.from(filteredRoom);
 			roomArray.forEach(room => {
 				console.log(id, room, 'disconnecting', socket.handshake.auth.userId); // the Set contains at least the socket ID
-				io.to(room).emit('friend-logged-out', { who: socket.handshake.auth.userId });
+				socket.to(room).emit('friend-logged-out', { who: socket.handshake.auth.userId });
 			});
 		});
 
