@@ -137,7 +137,8 @@ instrument(io, {
 			io.to(roomId).emit('receive-message', data);
 		});
 
-		socket.on('disconnecting', () => {
+		socket.on('disconnect', reason => {
+			console.log({ disconnected: reason });
 			const id = socket.id;
 			const allRooms = socket.rooms;
 			const filteredRoom = new Set(allRooms);
