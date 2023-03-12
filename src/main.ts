@@ -1,13 +1,9 @@
-import express from 'express';
-import { createServer } from 'http';
-import { Server } from 'socket.io';
 import { nanoid } from 'nanoid';
 import dotenv from 'dotenv';
 import cors from 'cors';
-import { instrument } from '@socket.io/admin-ui';
+import { app, server } from './app.js';
+import io from './socket.js';
 dotenv.config();
-const app = express();
-const server = createServer(app);
 
 const port = process.env.PORT || 5000;
 
@@ -19,17 +15,6 @@ app.get('/', async (req, res) => {
 app.get('/roomId', async (req, res) => {
 	const id = nanoid(10);
 	res.status(200).send({ id });
-});
-
-const io = new Server(server, {
-	cors: {
-		origin: '*',
-	},
-});
-
-instrument(io, {
-	auth: false,
-	mode: 'development',
 });
 
 (() => {
@@ -138,16 +123,9 @@ instrument(io, {
 		});
 
 		socket.on('disconnect', reason => {
-			console.log({ disconnected: reason });
 			const id = socket.id;
 			const allRooms = socket.rooms;
-			const filteredRoom = new Set(allRooms);
-			filteredRoom.delete(id);
-			const roomArray = Array.from(filteredRoom);
-			roomArray.forEach(room => {
-				console.log(id, room, 'disconnecting', socket.handshake.auth.userId); // the Set contains at least the socket ID
-				socket.to(room).emit('friend-logged-out', { who: socket.handshake.auth.userId });
-			});
+			console.log({ disconnected: reason });
 		});
 
 		// socket.on('complete-connection', ({ signal, toWhomId, toWhomSockId }) => {
@@ -157,9 +135,6 @@ instrument(io, {
 		// socket wants to join a room
 	});
 })();
-
-
-
 
 // (() => {
 // 	io.on('connection', socket => {
