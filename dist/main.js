@@ -21,10 +21,22 @@ var __rest = (this && this.__rest) || function (s, e) {
 import { nanoid } from 'nanoid';
 import dotenv from 'dotenv';
 import cors from 'cors';
-import { app, server } from './app.js';
-import io from './socket.js';
+import app from './app.js';
+import { createServer } from 'http';
+import { instrument } from '@socket.io/admin-ui';
+import { Server } from 'socket.io';
 dotenv.config();
-const port = process.env.PORT || 5000;
+const server = createServer(app);
+const port = process.env.PORT || 8000;
+const io = new Server(server, {
+    cors: {
+        origin: '*',
+    },
+});
+instrument(io, {
+    auth: false,
+    mode: 'development',
+});
 app.use(cors());
 app.get('/', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     res.send({ hello: 'mom' });
@@ -35,6 +47,7 @@ app.get('/roomId', (req, res) => __awaiter(void 0, void 0, void 0, function* () 
 }));
 (() => {
     io.on('connection', socket => {
+        console.log('socket is connected');
         socket.on('join-room', roomId => {
             console.log('user joined', roomId);
             socket.join(roomId);
@@ -106,4 +119,3 @@ app.get('/roomId', (req, res) => __awaiter(void 0, void 0, void 0, function* () 
     });
 })();
 server.listen(port, () => console.log(`server listening on ${port}`));
-//# sourceMappingURL=main.js.map

@@ -11,9 +11,13 @@
 		"esModuleInterop": true,
 		"forceConsistentCasingInFileNames": true,
 		"moduleResolution": "node",
-		"sourceMap": true,
+		"sourceMap": false,
 		"outDir": "dist",
 		"strict": true
+	},
+	"ts-node": {
+		"esm": true,
+		"experimentalSpecifierResolution": "node"
 	},
 	"include": ["*.d.ts", "./*.js", "src/**/*.ts", "test/**/*.ts"],
 	"exclude": ["node_modules", "dist"]

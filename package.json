@@ -8,7 +8,7 @@
 		"dev": "nodemon --exec pnpm start",
 		"lint": "eslint --fix src",
 		"build": "tsc",
-		"start": "tsc && node dist/main.js"
+		"start": "ts-node src/main.ts"
 	},
 	"keywords": [],
 	"author": "",

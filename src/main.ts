@@ -1,11 +1,25 @@
 import { nanoid } from 'nanoid';
 import dotenv from 'dotenv';
 import cors from 'cors';
-import { app, server } from './app.js';
-import io from './socket.js';
+import app from './app.js';
+import { createServer } from 'http';
+import { instrument } from '@socket.io/admin-ui';
+import { Server } from 'socket.io';
 dotenv.config();
+const server = createServer(app);
 
-const port = process.env.PORT || 5000;
+const port = process.env.PORT || 8000;
+
+const io = new Server(server, {
+	cors: {
+		origin: '*',
+	},
+});
+
+instrument(io, {
+	auth: false,
+	mode: 'development',
+});
 
 app.use(cors());
 
@@ -19,6 +33,7 @@ app.get('/roomId', async (req, res) => {
 
 (() => {
 	io.on('connection', socket => {
+		console.log('socket is connected');
 		// socket.on('routine-report', async ({ roomId }) => {
 		// 	console.log('received report');
 		// 	const sockMap = await io.in(roomId).fetchSockets();
@@ -135,48 +150,5 @@ app.get('/roomId', async (req, res) => {
 		// socket wants to join a room
 	});
 })();
-
-// (() => {
-// 	io.on('connection', socket => {
-// 		// socket.on('routine-report', async ({ roomId }) => {
-// 		// 	console.log('received report');
-// 		// 	const sockMap = await io.in(roomId).fetchSockets();
-// 		// 	let allUserId = [];
-// 		// 	for (let sock of sockMap) {
-// 		// 		allUserId.push(sock.handshake.auth.userId);
-// 		// 	}
-// 		// 	console.log('clearing up event emitting');
-// 		// 	io.to(roomId).emit('receive-report', { allUserId });
-// 		// });
-// 		socket.on('logging-out', ({ roomId }) => {
-// 			io.to(roomId).emit('friend-logged-out', { who: socket.handshake.auth.userId });
-// 			console.log('logging out ', socket.handshake.auth.userId);
-// 		});
-// 		socket.on('connect-to-friend', ({ from, to, signal }) => {
-// 			io.to(to).emit('on-req-to-connect', {
-// 				from: socket.handshake.auth.userId,
-// 				signal,
-// 			});
-// 		});
-// 		socket.on('complete-connection', ({ signal, to }) => {
-// 			io.to(to).emit('on-final-signal', { from: socket.handshake.auth.userId, signal });
-// 		});
-
-// 		// a socket joins do something
-
-// 		// socket wants to join a room
-// 		socket.on('join-room', roomId => {
-// 			// join the room
-// 			socket.join(roomId);
-// 			socket.emit('joined-room', roomId);
-
-// 			// notify everyone else that you have joined
-// 			socket.broadcast.emit('friend-joined-room', {
-// 				from: socket.handshake.auth.userId,
-// 				sockId: socket.id,
-// 			});
-// 		});
-// 	});
-// })();
 
 server.listen(port, () => console.log(`server listening on ${port}`));
