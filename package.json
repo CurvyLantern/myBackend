@@ -32,6 +32,7 @@
     "dev": "nodemon --exec pnpm start",
     "lint": "eslint --fix src",
     "start": "ts-node src/main.ts",
+    "preview": "node dist/main.js",
     "prepare": "husky install"
   },
   "type": "module",

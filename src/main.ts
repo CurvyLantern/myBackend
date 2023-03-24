@@ -4,7 +4,7 @@ import dotenv from 'dotenv';
 import { createServer } from 'http';
 import { nanoid } from 'nanoid';
 import { Server } from 'socket.io';
-import app from './app';
+import app from "./app.js";
 dotenv.config();
 const server = createServer(app);
 
