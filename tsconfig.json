@@ -1,25 +1,23 @@
 {
-	"compilerOptions": {
-		// "module": "commonjs",
-
-		"noImplicitAny": true,
-		"removeComments": true,
-		"skipLibCheck": true,
-		"target": "ES2016",
-		"module": "ESNext",
-		"allowSyntheticDefaultImports": true,
-		"esModuleInterop": true,
-		"forceConsistentCasingInFileNames": true,
-		"moduleResolution": "node",
-		"sourceMap": false,
-		"outDir": "dist",
-		"strict": true
-	},
-	"ts-node": {
-		"esm": true,
-		"experimentalSpecifierResolution": "node"
-	},
-	"include": ["*.d.ts", "./*.js", "src/**/*.ts", "test/**/*.ts"],
-	"exclude": ["node_modules", "dist"]
+  "compilerOptions": {
+    "noImplicitAny": true,
+    "removeComments": true,
+    "allowJs": true,
+    "skipLibCheck": true,
+    "target": "ES6",
+    "module": "ESNext",
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "moduleResolution": "node",
+    "sourceMap": false,
+    "outDir": "dist",
+    "strict": true
+  },
+  "ts-node": {
+    "esm": true,
+    "experimentalSpecifierResolution": "node"
+  },
+  "include": ["*.d.ts", "./*.js", "src/**/*.ts", "test/**/*.ts"],
+  "exclude": ["node_modules", "dist"]
 }
-// "start": "ts-node src/main.ts"
