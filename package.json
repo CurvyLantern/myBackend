@@ -29,10 +29,10 @@
   "name": "backend",
   "scripts": {
     "build": "tsc",
-    "dev": "nodemon --exec pnpm start",
-    "lint": "eslint --fix src",
-    "start": "ts-node src/main.ts",
+    "serve": "nodemon --exec pnpm start",
+    "start": "pnpm build && pnpm preview",
     "preview": "node dist/main.js",
+    "lint": "eslint --fix src",
     "prepare": "husky install"
   },
   "type": "module",
