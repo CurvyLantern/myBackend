@@ -29,8 +29,8 @@
   "name": "backend",
   "scripts": {
     "build": "tsc",
-    "serve": "nodemon --exec pnpm start",
-    "start": "pnpm build && pnpm preview",
+    "serve": "nodemon --exec tsc && node dist/main.js",
+    "start": "tsc && node dist/main.js",
     "preview": "node dist/main.js",
     "lint": "eslint --fix src",
     "prepare": "husky install"
