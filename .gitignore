@@ -9,3 +9,5 @@ pnp.*
 dist
 build
 *.env.*
+
+pnpm-lock.yaml
